@@ -24,7 +24,10 @@ function passesHardFilters(l) {
   const s = cfg.search;
   if (l.area < s.minArea || l.area > s.maxArea) return false;
   if (l.price > s.maxPrice) return false;
-  if (s.excludeNewBuildings && l.year && l.year >= s.newBuildingYearFrom) return false;
+  if (s.excludeNewBuildings) {
+    if (l.isNewProject) return false; // aruodas „Naujas projektas" žyma
+    if (l.year && l.year >= s.newBuildingYearFrom) return false;
+  }
   return true;
 }
 

@@ -48,19 +48,21 @@ kalibruosi pamatęs pirmus realius skaičius.
 
 ## Duomenų šaltinis (skelbimų srautas)
 
-`src/source.js` — **vienintelė** dalis, priklausanti nuo aruodas.lt. Trys keliai:
+`source.js` — vienintelė dalis, priklausanti nuo aruodas.lt. Selektoriai
+**pritaikyti pagal realią 2026-06 aruodas paieškos puslapio struktūrą**
+(`advert-flex` kortelė): ištraukia nuorodą, ID, kainą, plotą, kambarius,
+aukštą, statybos metus, įrengimą, šildymą, „Naujas projektas" žymą ir aruodas
+paties pažymėtą kainos kritimą/kilimą.
 
-- **`demo`** (numatyta) — pavyzdiniai duomenys grandinei išbandyti.
-- **`live`** — realus scraping. ⚠️ Prieštarauja aruodas taisyklėms ir gali
-  bet kada nustoti veikti. HTML selektorius `fetchLiveListings()` viduje
-  **būtina patikrinti naršyklės DevTools** ir pataisyti — jie pavyzdiniai.
-- **Švariausia (rekomenduoju):** aruodas išsaugotos paieškos + el. pašto
-  pranešimai, o šis įrankis tik įvertina atėjusius skelbimus. Arba mokamas
-  LT NT duomenų API. Tada `live` scraping nereikia visai.
+Režimai (env `SOURCE`):
+- `demo` (numatyta) — pavyzdiniai duomenys, saugu.
+- `live` — realus scraping iš aruodas.
 
-```bash
-SOURCE=live node src/index.js   # tik patikrinus/pataisius selektorius
-```
+Paieškos URL keiti `source.js` → `baseUrl` (pasiimk iš naršyklės atlikęs
+norimą paiešką; `FOrderBy=3` = naujausi viršuje).
+
+⚠️ Scraping prieštarauja aruodas taisyklėms ir gali nustoti veikti, jei jie
+pakeis dizainą (tada taisyk selektorius `source.js`) arba uždės apsaugą.
 
 ## „Nuolat" — deploy su Railway
 

@@ -10,11 +10,13 @@ function formatListing(l) {
   const head = l.priceDrop
     ? `▼ KAINA KRITO: ${l.priceDrop.from.toLocaleString('lt-LT')} € → ${l.priceDrop.to.toLocaleString('lt-LT')} €  (★ ${l.score} balų) — ${l.title}`
     : `★ ${l.score} balų — ${l.title}`;
+  // Aruodas pats pažymi kainos kritimą — papildomas signalas
+  const aruodasFlag = l.aruodasPriceChange === 'down' ? '  [aruodas: kaina sumažėjusi]' : '';
   return [
-    head,
+    head + aruodasFlag,
     `  ${l.url}`,
     `  Kaina: ${priceStr} | ${l.area ?? '?'} m² | ${b.priceDiscount.detail}`,
-    `  Renovacija: ${b.renovation.detail}`,
+    `  Būklė: ${l.equipment || '—'} | Renovacija: ${b.renovation.detail}`,
     `  Lokacija: ${b.location.detail} | Paveldas: ${b.heritage.detail}`,
   ].join('\n');
 }
