@@ -64,20 +64,26 @@ SOURCE=live node src/index.js   # tik patikrinus/pataisius selektorius
 
 ## „Nuolat" — deploy su Railway
 
-Du būdai, rinkis vieną:
+Railway pagal nutylėjimą tikisi web serviso, todėl įrankis automatiškai
+paleidžia mažytį **status serverį** (kai aplinkoje yra `PORT`, o Railway jį
+nustato pats). Tada:
 
-**A) Įprastas servisas + LOOP režimas (paprasčiausia).** Railway service
-Variables pridėk `RUN_EVERY_MINUTES=30` — procesas lieka gyvas ir pats
-kartoja paiešką kas 30 min. Nebebus „crashed" būsenos po kiekvieno paleidimo.
+- Railway nebemato „Application failed to respond" — serveris atsako.
+- Atsidaręs serviso URL naršyklėje matai status puslapį: paskutinio
+  tikrinimo laiką ir top galimybes su balais.
+- `/health` grąžina `ok` (patogu Railway healthcheck'ui).
+- Scout'as sukasi fone kas `RUN_EVERY_MINUTES` (numatyta 30).
 
-**B) Railway Cron Schedule.** Servisui nustatai Cron Schedule
-(pvz. `*/30 * * * *`), komanda `npm start`, ir RUN_EVERY_MINUTES nenaudoji —
-procesas paleidžiamas, padaro darbą ir užsidaro.
+Tad Railway pakanka tiesiog deploy'inti — jokio cron nereikia. Norėdamas
+keisti tikrinimo dažnį, nustatyk env `RUN_EVERY_MINUTES`.
 
-**Atminties išsaugojimas (svarbu abiem atvejais):** prijunk Railway Volume
-(pvz. mount path `/data`) ir nustatyk env `DATA_DIR=/data`. Kitaip
-`seen.json` ir `rc-values.json` išsivalys per kiekvieną redeploy ir gausi
-pranešimus apie tuos pačius objektus iš naujo.
+Vietiniai/cron režimai (be `PORT`):
+- `RUN_EVERY_MINUTES=30 node index.js` — loop'as be serverio.
+- `node index.js` — vienkartinis (padaro darbą, užsidaro; cron taikinys).
+
+**Atminties išsaugojimas:** prijunk Railway Volume (mount path pvz. `/data`)
+ir nustatyk env `DATA_DIR=/data`. Kitaip `seen.json` ir `rc-values.json`
+išsivalys per kiekvieną redeploy.
 
 ## El. pašto pranešimai (pasirinktinai)
 
