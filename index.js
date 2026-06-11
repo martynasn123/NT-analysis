@@ -3,10 +3,14 @@
 //  šaltinis → filtras → vertinimas → atmintis → pranešimas
 //
 //  Paleidimas:
-//    SOURCE=demo node src/index.js      (saugu, pavyzdiniai duomenys)
-//    SOURCE=live node src/index.js      (realus aruodas scraping)
+//    SOURCE=demo node index.js     (saugu, pavyzdiniai duomenys)
+//    SOURCE=live node index.js     (realus aruodas scraping)
 //
-//  „Nuolat" — Railway / serverio cron'u, pvz. kas 30 min.
+//  „Nuolat" — du būdai:
+//   A) Railway Cron Schedule (pvz. */30 * * * *) — paleidžia ir užsidaro.
+//   B) env RUN_EVERY_MINUTES=30 — procesas lieka gyvas ir pats kartoja.
+//      Tinka, kai Railway leidi kaip įprastą servisą (be cron) —
+//      nebebus „crashed" po kiekvieno paleidimo.
 // =============================================================
 
 const cfg = require('./config');
@@ -20,7 +24,9 @@ function passesHardFilters(l) {
   const s = cfg.search;
   if (l.area < s.minArea || l.area > s.maxArea) return false;
   if (l.price > s.maxPrice) return false;
-  if (s.excludeNewBuildings && l.year && l.year >= 2015) return false;
+  if (s.excludeNewBuildings && l.year && l.year >= s.newBuildingYearFrom) {
+    return false;
+  }
   return true;
 }
 
@@ -46,26 +52,44 @@ async function run() {
 
   const toAlert = [];
   for (const item of scored) {
-    const status = store.upsert(item);
+    const { status, oldPrice } = store.upsert(item);
     const worthy = item.score >= cfg.minScoreToAlert;
-    const fresh = status === 'new' || status === 'price_changed';
-    if (worthy && fresh && !store.wasAlerted(item.id)) {
+    if (!worthy) continue;
+
+    if (status === 'new' && !store.wasAlerted(item.id)) {
+      // Naujas vertas objektas — pranešam vieną kartą
       toAlert.push(item);
       store.markAlerted(item.id);
+    } else if (status === 'price_changed' && oldPrice > item.price) {
+      // KAINA NUKRITO — pranešam VISADA, net jei jau buvo pranešta.
+      // Kainos kritimas = motyvuotas pardavėjas, svarbiausias signalas.
+      toAlert.push({ ...item, priceDrop: { from: oldPrice, to: item.price } });
+      store.markAlerted(item.id);
     }
+    // Kainos PAKILIMAS pranešimo negeneruoja — tai ne galimybė.
   }
 
-  console.log(`Verti pranešimo (>=${cfg.minScoreToAlert}, nauji): ${toAlert.length}`);
+  console.log(`Verti pranešimo (>=${cfg.minScoreToAlert}): ${toAlert.length}`);
 
   if (toAlert.length) {
     await notify(toAlert);
   }
 
-  // Visada parodyk dabartinį top sąrašą terminale
   console.log('\n--- TOP šios sesijos ---');
   for (const r of scored.slice(0, 10)) {
     console.log(`[${r.score}] ${r.title} — ${r.breakdown.priceDiscount.detail}`);
   }
 }
 
-run().then(() => process.exit(0));
+// --- Paleidimo režimai ---
+const everyMin = Number(process.env.RUN_EVERY_MINUTES || 0);
+
+if (everyMin > 0) {
+  // LOOP režimas: procesas gyvas, kartoja pats (Railway be cron)
+  console.log(`LOOP režimas: kartoju kas ${everyMin} min.`);
+  run();
+  setInterval(run, everyMin * 60 * 1000);
+} else {
+  // Vienkartinis režimas: padaro darbą ir užsidaro (cron taikinys)
+  run().then(() => process.exit(0));
+}

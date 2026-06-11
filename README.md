@@ -62,15 +62,22 @@ kalibruosi pamatęs pirmus realius skaičius.
 SOURCE=live node src/index.js   # tik patikrinus/pataisius selektorius
 ```
 
-## „Nuolat" — deploy su cron
+## „Nuolat" — deploy su Railway
 
-Ta pati schema kaip tavo lino agronomijos app:
+Du būdai, rinkis vieną:
 
-1. Įkelk į GitHub, prijunk prie **Railway**.
-2. Pridėk **Cron** servisą, komanda `npm start`, dažnis pvz. `*/30 * * * *`
-   (kas 30 min).
-3. `data/seen.json` saugo matytus skelbimus tarp paleidimų — Railway tam
-   reikės persistent volume (kitaip atmintis išsivalys per redeploy).
+**A) Įprastas servisas + LOOP režimas (paprasčiausia).** Railway service
+Variables pridėk `RUN_EVERY_MINUTES=30` — procesas lieka gyvas ir pats
+kartoja paiešką kas 30 min. Nebebus „crashed" būsenos po kiekvieno paleidimo.
+
+**B) Railway Cron Schedule.** Servisui nustatai Cron Schedule
+(pvz. `*/30 * * * *`), komanda `npm start`, ir RUN_EVERY_MINUTES nenaudoji —
+procesas paleidžiamas, padaro darbą ir užsidaro.
+
+**Atminties išsaugojimas (svarbu abiem atvejais):** prijunk Railway Volume
+(pvz. mount path `/data`) ir nustatyk env `DATA_DIR=/data`. Kitaip
+`seen.json` ir `rc-values.json` išsivalys per kiekvieną redeploy ir gausi
+pranešimus apie tuos pačius objektus iš naujo.
 
 ## El. pašto pranešimai (pasirinktinai)
 

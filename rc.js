@@ -21,7 +21,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const FILE = path.join(__dirname, '..', 'data', 'rc-values.json');
+const FILE = path.join(
+  process.env.DATA_DIR || path.join(__dirname, 'data'),
+  'rc-values.json'
+);
 
 function loadMap() {
   try {

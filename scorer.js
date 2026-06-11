@@ -16,14 +16,18 @@
 
 const cfg = require('./config');
 
-// Pagalbinė: ar tekste yra bent vienas iš raktažodžių
+// Pagalbinė: ar tekste yra bent vienas iš raktažodžių.
+// Dedupe: jei pataikė ir „tvarkytina", ir „tvarkytinas" (tas pats žodis),
+// paliekam tik ilgesnįjį — kitaip vienas žodis dirbtinai pučia balą.
 function matchAny(text, list) {
   if (!text) return [];
   const hits = [];
   for (const kw of list) {
     if (text.includes(kw)) hits.push(kw);
   }
-  return hits;
+  return hits.filter(
+    (kw) => !hits.some((other) => other !== kw && other.includes(kw))
+  );
 }
 
 // 0..1 -> apriboti

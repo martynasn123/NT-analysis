@@ -13,6 +13,7 @@ module.exports = {
     maxArea: 120,               // m² — atmesti per didelius (per brangus „bilietas")
     maxPrice: 250000,           // € — viršutinė riba įvažiavimui
     excludeNewBuildings: true,  // nauja statyba = mažas renovacijos potencialas
+    newBuildingYearFrom: 2015,  // „nauja statyba" = pastatyta nuo šių metų
   },
 
   // --- Svoriai (gauti iš tavo prioritetų rikiavimo) ---
